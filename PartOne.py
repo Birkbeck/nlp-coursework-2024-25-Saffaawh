@@ -23,6 +23,7 @@ def fk_level(text, d):
     Returns:
         float: The Flesch-Kincaid Grade Level of the text. (higher grade is more difficult)
     """
+
     pass
 
 
@@ -37,12 +38,48 @@ def count_syl(word, d):
     Returns:
         int: The number of syllables in the word.
     """
+    if word.lower() in d:
+        return len(d[word.lower()])
+    else:
+        # Estimate syllables by counting vowel clusters
+        vowels = "aeiouy"
+        count = 0
+        word = word.lower()
+        in_vowel_cluster = False
+        for char in word:
+            if char in vowels:
+                if not in_vowel_cluster:
+                    count += 1
+                    in_vowel_cluster = True
+            else:
+                in_vowel_cluster = False
+        return count if count > 0 else 1
     pass
 
 
 def read_novels(path=Path.cwd() / "texts" / "novels"):
     """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
     author, and year"""
+    import pandas as pd
+    from tqdm import tqdm
+    import os
+    data = []
+    for file in tqdm(os.listdir(path)):
+        if file.endswith(".txt"):
+            try:
+                #extract the data from filename 
+                filename_sections = file[:-4].split("-")  # these sections are split by the - 
+                if len(filename_sections) == 3: #this is the correct length 
+                    title, author, year = filename_sections
+                    year= int(year.strip()) #turn year into an integer 
+                else: 
+                    title, author, year = 'unknown', 'unknown', 'unknown' #this is a fallback if the filename is not in the expected format
+                data.append({"title": title, "text": text, "author": author, "year": year})
+            except Exception as e:
+                print(f"Error in {file}: {e}")
+                continue
+    dataframe =pd.DataFrame(data)
+    dataframe= dataframe.sort_values(by=year, ascending=True) #sort by year
     pass
 
 
@@ -54,7 +91,16 @@ def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
 
 def nltk_ttr(text):
     """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
-    pass
+   import nltk
+    from nltk import word_tokenize
+    newtoken = word_tokenize(text)
+#need to exclude punctuation and ignore case
+    # Convert tokens to lowercase and filter out non-alphabetic tokens - this will filter out numbers and punctuation and ignore the lowercase
+    newtoken = [token.lower() for token in newtoken if token.isalpha()]
+    unique_tokens = set(newtoken) #removes the duplicates
+    if len(newtoken) == 0:#if there are no tokens, return 0.0 to avoid division by zero
+        return 0.0
+    return len(unique_tokens) / len(newtoken) if len(newtoken) > 0 else 0.0
 
 
 def get_ttrs(df):
