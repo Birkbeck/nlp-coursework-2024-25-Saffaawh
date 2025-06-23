@@ -52,7 +52,7 @@ def count_syl(word, d):
     import re
     word = word.lower()
     if word.lower() in d:
-        return len([p for p in d[word][0]] if p[-1].isdigit()]) #this is cheking the sylabeles for words in this dictionary the is digit part is checking the sylable count per secion of the word
+        return len([p for p in d[word][0] if p[-1].isdigit()]) #this is cheking the sylabeles for words in this dictionary the is digit part is checking the sylable count per secion of the word
     else:
         # Estimate syllables by counting vowel clusters
         vowels = "aeiouy"
@@ -99,6 +99,14 @@ def read_novels(path=Path.cwd() / "texts" / "novels"):
 def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
     """Parses the text of a DataFrame using spaCy, stores the parsed docs as a column and writes 
     the resulting  DataFrame to a pickle file"""
+    #add new column with parsed doc objects
+    df["parsed"] = df["text"].apply(lambda x: nlp(text[:nlp.max_length]))  # parse the text using spaCy
+    #save to a pickel file 
+    pickle_file = store_path / out_name
+    with open(pickle_file, "wb") as f:
+        import pickle
+        pickle.dump(df, f)
+    return df  # return the DataFrame with the parsed column added
     pass
 
 
