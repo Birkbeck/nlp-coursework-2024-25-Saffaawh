@@ -23,7 +23,18 @@ def fk_level(text, d):
     Returns:
         float: The Flesch-Kincaid Grade Level of the text. (higher grade is more difficult)
     """
-
+    import re
+    sentence = ntlk.sent_tokenize(text)
+    words = nltk.word_tokenize(text)
+    #need to filter out puntctuation 
+    words = [word for word in words if word.isalpha()]  # filter out punctuation and numbers
+    total_words = len(words)
+    total_sentences = len(sentence)     
+    total_syllables = sume(count_syl(word, d) for word in words)  # sum the syllables for each word in the text
+    if total_words == 0 or total_sentences == 0:  # avoid division by zero
+        return 0.0
+    fk_grade = 0.39 * (total_words / total_sentences) + 11.8 * (total_syllables / total_words) - 15.59
+    return fk_grade if fk_grade > 0 else 0.0  # return 0.0 if the grade is negative 
     pass
 
 
@@ -38,8 +49,10 @@ def count_syl(word, d):
     Returns:
         int: The number of syllables in the word.
     """
+    import re
+    word = word.lower()
     if word.lower() in d:
-        return len(d[word.lower()])
+        return len([p for p in d[word][0]] if p[-1].isdigit()]) #this is cheking the sylabeles for words in this dictionary the is digit part is checking the sylable count per secion of the word
     else:
         # Estimate syllables by counting vowel clusters
         vowels = "aeiouy"
@@ -91,10 +104,10 @@ def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
 
 def nltk_ttr(text):
     """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
-   import nltk
+    import nltk
     from nltk import word_tokenize
     newtoken = word_tokenize(text)
-#need to exclude punctuation and ignore case
+    #need to exclude punctuation and ignore case
     # Convert tokens to lowercase and filter out non-alphabetic tokens - this will filter out numbers and punctuation and ignore the lowercase
     newtoken = [token.lower() for token in newtoken if token.isalpha()]
     unique_tokens = set(newtoken) #removes the duplicates
