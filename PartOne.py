@@ -30,12 +30,12 @@ def fk_level(text, d):
     words = [word for word in words if word.isalpha()]  # filter out punctuation and numbers
     total_words = len(words)
     total_sentences = len(sentence)     
-    total_syllables = sume(count_syl(word, d) for word in words)  # sum the syllables for each word in the text
+    total_syllables = sum(count_syl(word, d) for word in words)  # sum the syllables for each word in the text
     if total_words == 0 or total_sentences == 0:  # avoid division by zero
         return 0.0
     fk_grade = 0.39 * (total_words / total_sentences) + 11.8 * (total_syllables / total_words) - 15.59
     return fk_grade if fk_grade > 0 else 0.0  # return 0.0 if the grade is negative 
-    pass
+
 
 
 def count_syl(word, d):
@@ -67,7 +67,6 @@ def count_syl(word, d):
             else:
                 in_vowel_cluster = False
         return count if count > 0 else 1
-    pass
 
 
 def read_novels(path=Path.cwd() / "texts" / "novels"):
@@ -76,24 +75,28 @@ def read_novels(path=Path.cwd() / "texts" / "novels"):
     import pandas as pd
     from tqdm import tqdm
     import os
+    print("Files found:", list(path.glob("*.txt"))) #debugging code to be deleted
     data = []
-    for file in tqdm(os.listdir(path)):
+    for file in tqdm(list(path.glob("*.txt"))):
         if file.endswith(".txt"):
             try:
                 #extract the data from filename 
-                filename_sections = file[:-4].split("-")  # these sections are split by the - 
+                filename_sections = file.stem.split("-")  # these sections are split by the - 
                 if len(filename_sections) == 3: #this is the correct length 
                     title, author, year = filename_sections
                     year= int(year.strip()) #turn year into an integer 
                 else: 
                     title, author, year = 'unknown', 'unknown', 'unknown' #this is a fallback if the filename is not in the expected format
+                with open(file, "r", encoding="utf-8") as f:
+                    text = f.read() #suggestion from co-pilot to fix code bug 
                 data.append({"title": title, "text": text, "author": author, "year": year})
             except Exception as e:
                 print(f"Error in {file}: {e}")
                 continue
     dataframe =pd.DataFrame(data)
-    dataframe= dataframe.sort_values(by=year, ascending=True) #sort by year
-    pass
+    dataframe['year'] = pd.to_numeric(dataframe['year'], errors='coerce')  # convert year to numeric, coerce errors to NaN - suggestion from co-pilot to fix code bug
+    dataframe= dataframe.sort_values(by= "year", ascending=True) #sort by year
+    return dataframe
 
 
 def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
@@ -107,7 +110,7 @@ def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
         import pickle
         pickle.dump(df, f)
     return df  # return the DataFrame with the parsed column added
-    pass
+
 
 
 def nltk_ttr(text):
@@ -146,7 +149,7 @@ def subjects_by_verb_pmi(doc, target_verb):
     #step 2 is to calculate the verb poitwise mutual information (PMI) to find strongly associated subjects 
     from collections import Counter
     from math import log
-    subjects_counts = counter() #tracks how often each subject appears
+    subjects_counts = Counter() #tracks how often each subject appears
     verb_counts = Counter()  # tracks how often each verb appears
     co_occcurrences = Counter()  # to count how often (subject,verb) pairs appear together
     for token in doc:#loop trhough the doc
@@ -167,9 +170,9 @@ def subjects_by_verb_pmi(doc, target_verb):
         prob_coocurance = count / len(doc)  # probability of subject and verb appearing together
 
         pmi_scores=log(prob_coocurance / (prob_subject * prob_verb)) if prob_subject > 0 and prob_verb > 0 else 0
-        pmi_scores.append((subject, verb, pmi_score))  # append the subject, verb and pmi score to the list
+        pmi_scores.append((subject, verb, pmi_scores))  # append the subject, verb and pmi score to the list
     return sorted(pmi_scores, key=lambda x: x[2], reverse=True)[:10]  #gives the top 10 subjects with highest PMI
-    pass
+
 
 
 
@@ -179,7 +182,7 @@ def subjects_by_verb_count(doc, verb):
     from collections import Counter
     subject_counter =[]#list to collect the subjects 
     for token in doc:
-        if toke.dep_ == "nsubj" and token.head.lemma_ == verb:
+        if token.dep_ == "nsubj" and token.head.lemma_ == verb:
             #this is the subject of the verb
             subject_counter.append(token.text.lower()) #add the subject to the list
     return subject_counter.most_common(10)#this will return the 10 most common subjects
@@ -189,26 +192,29 @@ def subjects_by_verb_count(doc, verb):
 
 def adjective_counts(doc):
     """Extracts the most common adjectives in a parsed document. Returns a list of tuples."""
-    pass
-
+    from collections import Counter
+    adjective = [token.text.lower() for token in doc if token.pos_ == "ADJ"]  # get all adjectives
+    adjective_counter = Counter(adjective)  # count the occurrences of each adjective
+    return adjective_counter.most_common(10)  # return the 10 most common adjectives
 
 
 if __name__ == "__main__":
-    """
-    uncomment the following lines to run the functions once you have completed them
-    """
-    #path = Path.cwd() / "p1-texts" / "novels"
-    #print(path)
-    #df = read_novels(path) # this line will fail until you have completed the read_novels function above.
-    #print(df.head())
-    #nltk.download("cmudict")
-    #parse(df)
-    #print(df.head())
-    #print(get_ttrs(df))
-    #print(get_fks(df))
-    #df = pd.read_pickle(Path.cwd() / "pickles" /"name.pickle")
-    # print(adjective_counts(df))
-    """ 
+    print('hello world')
+    import os
+    from pathlib import Path
+    print("Current working directory:", os.getcwd())
+    path = Path.cwd() / "Part1_novels"
+    print(path)
+    df = read_novels(path) # this line will fail until you have completed the read_novels function above.
+    print(df.head())
+    nltk.download("cmudict")
+    parse(df)
+    print(df.head())
+    print(get_ttrs(df))
+    print(get_fks(df))
+    df = pd.read_pickle(Path.cwd() / "pickles" /"name.pickle")
+    print(adjective_counts(df))
+    
     for i, row in df.iterrows():
         print(row["title"])
         print(subjects_by_verb_count(row["parsed"], "hear"))
@@ -218,5 +224,5 @@ if __name__ == "__main__":
         print(row["title"])
         print(subjects_by_verb_pmi(row["parsed"], "hear"))
         print("\n")
-    """
+
 
