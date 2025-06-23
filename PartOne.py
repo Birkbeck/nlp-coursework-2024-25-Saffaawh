@@ -143,7 +143,32 @@ def get_fks(df):
 
 def subjects_by_verb_pmi(doc, target_verb):
     """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
+    #step 2 is to calculate the verb poitwise mutual information (PMI) to find strongly associated subjects 
+    from collections import Counter
+    from math import log
+    subjects_counts = counter() #tracks how often each subject appears
+    verb_counts = Counter()  # tracks how often each verb appears
+    co_occcurrences = Counter()  # to count how often (subject,verb) pairs appear together
+    for token in doc:#loop trhough the doc
+        if token.dep_ == "nsubj": #this means its a subject of  verb 
+            subject = token.text.lower() #coversts to lowercase for consitency 
+            verb = token.head.lemma_.lower()  # this is the verb the subject depends on 
+            subjects_counts[subject] += 1  # update the counters 
+            verb_counts[verb] += 1
+            co_occcurrences[(subject, verb)] += 1  
+            #compute teh totals 
+    total_subjects = sum(subjects_counts.values())
+    total_verbs = sum(verb_counts.values())
+    #calculate the PMI scores
+    pmi_scores = []  # list to store the PMI scores
+    for (subject, verb), count in co_occcurrences.items():
+        prob_subject = subjects_counts[subject] / total_subjects   #probability od subject appearing
+        prob_verb = verb_counts[verb] / total_verbs  # probability of verb appearing
+        prob_coocurance = count / len(doc)  # probability of subject and verb appearing together
 
+        pmi_scores=log(prob_coocurance / (prob_subject * prob_verb)) if prob_subject > 0 and prob_verb > 0 else 0
+        pmi_scores.append((subject, verb, pmi_score))  # append the subject, verb and pmi score to the list
+    return sorted(pmi_scores, key=lambda x: x[2], reverse=True)[:10]  #gives the top 10 subjects with highest PMI
     pass
 
 
