@@ -5,7 +5,15 @@
 import nltk
 import spacy
 from pathlib import Path
-
+import os
+import pandas as pd
+from tqdm import tqdm
+import nltk
+import spacy
+from nltk import word_tokenize
+from collections import Counter
+from math import log
+# ...your functions here...
 
 nlp = spacy.load("en_core_web_sm")
 nlp.max_length = 2000000
@@ -72,13 +80,10 @@ def count_syl(word, d):
 def read_novels(path=Path.cwd() / "texts" / "novels"):
     """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
     author, and year"""
-    import pandas as pd
-    from tqdm import tqdm
-    import os
     print("Files found:", list(path.glob("*.txt"))) #debugging code to be deleted
     data = []
     for file in tqdm(list(path.glob("*.txt"))):
-        if file.endswith(".txt"):
+        if file.name.endswith(".txt"):
             try:
                 #extract the data from filename 
                 filename_sections = file.stem.split("-")  # these sections are split by the - 
@@ -103,7 +108,8 @@ def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
     """Parses the text of a DataFrame using spaCy, stores the parsed docs as a column and writes 
     the resulting  DataFrame to a pickle file"""
     #add new column with parsed doc objects
-    df["parsed"] = df["text"].apply(lambda x: nlp(text[:nlp.max_length]))  # parse the text using spaCy
+    df["parsed"] = df["text"].apply(lambda x: nlp(x[:nlp.max_length]))  # parse the text using spaCy
+    store_path.mkdir(parents=True, exist_ok=True)  #create a path 
     #save to a pickel file 
     pickle_file = store_path / out_name
     with open(pickle_file, "wb") as f:
@@ -115,8 +121,6 @@ def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
 
 def nltk_ttr(text):
     """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
-    import nltk
-    from nltk import word_tokenize
     newtoken = word_tokenize(text)
     #need to exclude punctuation and ignore case
     # Convert tokens to lowercase and filter out non-alphabetic tokens - this will filter out numbers and punctuation and ignore the lowercase
@@ -147,8 +151,6 @@ def get_fks(df):
 def subjects_by_verb_pmi(doc, target_verb):
     """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
     #step 2 is to calculate the verb poitwise mutual information (PMI) to find strongly associated subjects 
-    from collections import Counter
-    from math import log
     subjects_counts = Counter() #tracks how often each subject appears
     verb_counts = Counter()  # tracks how often each verb appears
     co_occcurrences = Counter()  # to count how often (subject,verb) pairs appear together
@@ -179,7 +181,6 @@ def subjects_by_verb_pmi(doc, target_verb):
 def subjects_by_verb_count(doc, verb):
     """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
         #step 1 is to find the verb in the document
-    from collections import Counter
     subject_counter =[]#list to collect the subjects 
     for token in doc:
         if token.dep_ == "nsubj" and token.head.lemma_ == verb:
@@ -192,16 +193,12 @@ def subjects_by_verb_count(doc, verb):
 
 def adjective_counts(doc):
     """Extracts the most common adjectives in a parsed document. Returns a list of tuples."""
-    from collections import Counter
     adjective = [token.text.lower() for token in doc if token.pos_ == "ADJ"]  # get all adjectives
     adjective_counter = Counter(adjective)  # count the occurrences of each adjective
     return adjective_counter.most_common(10)  # return the 10 most common adjectives
 
 
 if __name__ == "__main__":
-    print('hello world')
-    import os
-    from pathlib import Path
     print("Current working directory:", os.getcwd())
     path = Path.cwd() / "Part1_novels"
     print(path)
