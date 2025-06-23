@@ -143,12 +143,21 @@ def get_fks(df):
 
 def subjects_by_verb_pmi(doc, target_verb):
     """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
+    #step 1 is to find the verb in the document
+    from collections import Counter
+    subject_counter =[]#list to collect the subjects 
+    for token in doc:
+        if toke.dep_ == "nsubj" and token.head.lemma_ == target_verb:
+            #this is the subject of the verb
+            subject_counter.append(token.text.lower()) #add the subject to the list
+    return subject_counter.most_common(10)#this will return the 10 most common subjects
     pass
 
 
 
 def subjects_by_verb_count(doc, verb):
     """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
+    #step 2 is to 
     pass
 
 
