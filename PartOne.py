@@ -8,10 +8,9 @@ from pathlib import Path
 import os
 import pandas as pd
 from tqdm import tqdm
-import nltk
-import spacy
 from nltk import word_tokenize
-nltk.download('punkt')
+nltk.download('punkt') 
+nltk.download('punkt_tab') 
 from collections import Counter
 from math import log
 # ...your functions here...
@@ -33,6 +32,10 @@ def fk_level(text, d):
         float: The Flesch-Kincaid Grade Level of the text. (higher grade is more difficult)
     """
     import re
+    import nltk
+    from nltk import word_tokenize
+    nltk.download('punkt')
+
     sentence = nltk.sent_tokenize(text)
     words = nltk.word_tokenize(text)
     #need to filter out puntctuation 
@@ -121,6 +124,10 @@ def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
 
 def nltk_ttr(text):
     """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
+    import re
+    import nltk
+    from nltk import word_tokenize
+    nltk.download('punkt')
     newtoken = word_tokenize(text)
     #need to exclude punctuation and ignore case
     # Convert tokens to lowercase and filter out non-alphabetic tokens - this will filter out numbers and punctuation and ignore the lowercase
