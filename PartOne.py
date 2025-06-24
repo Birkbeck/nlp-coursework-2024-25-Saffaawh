@@ -11,6 +11,7 @@ from tqdm import tqdm
 import nltk
 import spacy
 from nltk import word_tokenize
+nltk.download('punkt')
 from collections import Counter
 from math import log
 # ...your functions here...
@@ -32,7 +33,7 @@ def fk_level(text, d):
         float: The Flesch-Kincaid Grade Level of the text. (higher grade is more difficult)
     """
     import re
-    sentence = ntlk.sent_tokenize(text)
+    sentence = nltk.sent_tokenize(text)
     words = nltk.word_tokenize(text)
     #need to filter out puntctuation 
     words = [word for word in words if word.isalpha()]  # filter out punctuation and numbers
@@ -80,7 +81,6 @@ def count_syl(word, d):
 def read_novels(path=Path.cwd() / "texts" / "novels"):
     """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
     author, and year"""
-    print("Files found:", list(path.glob("*.txt"))) #debugging code to be deleted
     data = []
     for file in tqdm(list(path.glob("*.txt"))):
         if file.name.endswith(".txt"):
