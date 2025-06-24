@@ -190,7 +190,7 @@ def subjects_by_verb_count(doc, verb):
         #step 1 is to find the verb in the document
     subject_counter =[]#list to collect the subjects 
     for token in doc:
-        if token.dep_ == "nsubj" and token.head.lemma_ == verb:
+        if token.dep_ == "nsubj" and token.head.lemma_ == verb:  # check if the token is a subject of the verb "hear"
             #this is the subject of the verb
             subject_counter.append(token.text.lower()) #add the subject to the list
     return subject_counter.most_common(10)#this will return the 10 most common subjects
@@ -200,9 +200,18 @@ def subjects_by_verb_count(doc, verb):
 
 def adjective_counts(doc):
     """Extracts the most common adjectives in a parsed document. Returns a list of tuples."""
-    adjective = [token.text.lower() for token in doc if token.pos_ == "ADJ"]  # get all adjectives
+    adjective = []  # list to collect adjectives
+    #step 3 is to extract the adjectives from the document
+    for parsed_doc in doc["parsed"]:
+        adjective.extend([token.text.lower() for token in parsed_doc if hasattr(token, "pos_") and token.pos_ == "ADJ"])
+    #step 4 is to count the occurrences of each adjective       
     adjective_counter = Counter(adjective)  # count the occurrences of each adjective
+    #step 5 is to return the 10 most common adjectives
     return adjective_counter.most_common(10)  # return the 10 most common adjectives
+    
+    #adjective = [token.text.lower() for token in doc if token.pos_ == "ADJ"]  # get all adjectives
+    #adjective_counter = Counter(adjective)  # count the occurrences of each adjective
+   # return adjective_counter.most_common(10)  # return the 10 most common adjectives
 
 
 if __name__ == "__main__":
@@ -216,7 +225,7 @@ if __name__ == "__main__":
     print(df.head())
     print(get_ttrs(df))
     print(get_fks(df))
-    df = pd.read_pickle(Path.cwd() / "pickles" /"name.pickle")
+    df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle")
     print(adjective_counts(df))
     
     for i, row in df.iterrows():
