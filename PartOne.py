@@ -13,7 +13,7 @@ nltk.download('punkt')
 nltk.download('punkt_tab') 
 from collections import Counter
 from math import log
-
+import re
 
 nlp = spacy.load("en_core_web_sm")
 nlp.max_length = 2000000
@@ -21,21 +21,6 @@ nlp.max_length = 2000000
 
 
 def fk_level(text, d):
-    """Returns the Flesch-Kincaid Grade Level of a text (higher grade is more difficult).
-    Requires a dictionary of syllables per word.
-
-    Args:
-        text (str): The text to analyze.
-        d (dict): A dictionary of syllables per word.
-
-    Returns:
-        float: The Flesch-Kincaid Grade Level of the text. (higher grade is more difficult)
-    """
-    import re
-    import nltk
-    from nltk import word_tokenize
-    nltk.download('punkt')
-
     sentence = nltk.sent_tokenize(text)
     words = nltk.word_tokenize(text)
     #need to filter out puntctuation 
@@ -51,17 +36,6 @@ def fk_level(text, d):
 
 
 def count_syl(word, d):
-    """Counts the number of syllables in a word given a dictionary of syllables per word.
-    if the word is not in the dictionary, syllables are estimated by counting vowel clusters
-
-    Args:
-        word (str): The word to count syllables for.
-        d (dict): A dictionary of syllables per word.
-
-    Returns:
-        int: The number of syllables in the word.
-    """
-    import re
     word = word.lower()
     if word.lower() in d:
         return len([p for p in d[word][0] if p[-1].isdigit()]) #this is cheking the sylabeles for words in this dictionary the is digit part is checking the sylable count per secion of the word
@@ -82,8 +56,6 @@ def count_syl(word, d):
 
 
 def read_novels(path=Path.cwd() / "texts" / "novels"):
-    """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
-    author, and year"""
     data = []
     for file in tqdm(list(path.glob("*.txt"))):
         if file.name.endswith(".txt"):
@@ -108,8 +80,6 @@ def read_novels(path=Path.cwd() / "texts" / "novels"):
 
 
 def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
-    """Parses the text of a DataFrame using spaCy, stores the parsed docs as a column and writes 
-    the resulting  DataFrame to a pickle file"""
     #add new column with parsed doc objects
     df["parsed"] = df["text"].apply(lambda x: nlp(x[:nlp.max_length]))  # parse the text using spaCy
     store_path.mkdir(parents=True, exist_ok=True)  #create a path 
@@ -123,7 +93,6 @@ def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
 
 
 def nltk_ttr(text):
-    """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
     newtoken = word_tokenize(text)
     #need to exclude punctuation and ignore case
     # Convert tokens to lowercase and filter out non-alphabetic tokens - this will filter out numbers and punctuation and ignore the lowercase
@@ -135,7 +104,6 @@ def nltk_ttr(text):
 
 
 def get_ttrs(df):
-    """helper function to add ttr to a dataframe"""
     results = {}
     for i, row in df.iterrows():
         results[row["title"]] = nltk_ttr(row["text"])
@@ -143,7 +111,6 @@ def get_ttrs(df):
 
 
 def get_fks(df):
-    """helper function to add fk scores to a dataframe"""
     results = {}
     cmudict = nltk.corpus.cmudict.dict()
     for i, row in df.iterrows():
@@ -152,7 +119,6 @@ def get_fks(df):
 
 
 def subjects_by_verb_pmi(doc, target_verb):
-    """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
     #step 2 is to calculate the verb poitwise mutual information (PMI) to find strongly associated subjects 
     subjects_counts = Counter() #tracks how often each subject appears
     verb_counts = Counter()  # tracks how often each verb appears
@@ -182,7 +148,6 @@ def subjects_by_verb_pmi(doc, target_verb):
 
 
 def subjects_by_verb_count(doc, verb):
-    """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
         #step 1 is to find the verb in the document
     subject_counter =[]#list to collect the subjects 
     for token in doc:
@@ -195,7 +160,6 @@ def subjects_by_verb_count(doc, verb):
 
 
 def adjective_counts(doc):
-    """Extracts the most common adjectives in a parsed document. Returns a list of tuples."""
     adjective = []  # list to collect adjectives
     #step 3 is to extract the adjectives from the document
     for parsed_doc in doc["parsed"]:
@@ -205,9 +169,6 @@ def adjective_counts(doc):
     #step 5 is to return the 10 most common adjectives
     return adjective_counter.most_common(10)  # return the 10 most common adjectives
     
-    #adjective = [token.text.lower() for token in doc if token.pos_ == "ADJ"]  # get all adjectives
-    #adjective_counter = Counter(adjective)  # count the occurrences of each adjective
-   # return adjective_counter.most_common(10)  # return the 10 most common adjectives
 
 
 if __name__ == "__main__":

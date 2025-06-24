@@ -1,6 +1,6 @@
 import pandas as pd
 
-#2(a)(i): load the dataset and clean the data replacing labour (co-op) with labour 
+#2(a)(i): load the dataset and clean 
 def load_dataset_clean(path):
     try:
         df = pd.read_csv(path)
