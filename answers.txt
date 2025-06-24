@@ -1,2 +1,26 @@
-Part 1 (D) There are two condions where the FK level is not a good predicto the first is for small texts - the FK result can be given as a negative number- for this reason my code automatically changes negative numbers to 0. 
+###Part 1 (D) - Flesch-Kincaid Not a good predictor 
+
+There are two condions where the FK level is not a good prediction the first is for small texts - the FK result can be given as a negative number- for this reason my code automatically changes negative numbers to 0. 
 The second is that because it uses the length of a sentence a short complicated sentences could be marked as easy this is because it does not consider the context of the sentence legal, scientific and poetry may have short sentence but ue to the temininnology may be complex and this predictor would not be accurate. 
+
+### Part 2 (F) — Custom Tokenizer Explanation
+
+My custom tokenizer is designed to prepare the text for TfidfVectorizer with the following steps:
+
+1. **Lowercasing**: Converts all characters to lowercase to ensure words are treated the same regardless of casing. This prevents duplicate features (e.g., "Government" vs. "government") and improves consistency.  
+
+2. **Removing Punctuation**: Replaces punctuation with spaces to ensure words are correctly identified without concatenation. This helps TF-IDF focus on meaningful words rather than symbols.  
+
+3. **Tokenizing the Text**: Uses NLTK’s `word_tokenize()` function to split text into individual words while handling contractions and common word boundaries intelligently.  
+
+### Performance Analysis
+
+The results show **minimal differences** between the custom tokenizer, standard tokenizer, and n-gram version. This suggests that **TF-IDF already handles case normalisation and stopword removal**, reducing the impact of additional preprocessing.  
+
+The **SVM classifier consistently achieved the highest accuracy**, likely due to its ability to separate high-dimensional data. However, this may be influenced by **class imbalance**, where the majority class ("Conservatives") dominates predictions.  
+
+To improve classification for **minority classes**, techniques like **SMOTE (Synthetic Minority Over-sampling Technique)** or adjusting **class weights** could be explored.  
+
+### Conclusion
+
+While the custom tokenizer ensures clean and consistent input, its impact on classification performance was limited. Future improvements could focus on **domain-specific tokenization** (e.g., handling political jargon) or **balancing class distributions** to improve minority class predictions.
