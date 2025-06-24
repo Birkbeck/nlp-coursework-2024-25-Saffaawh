@@ -1,7 +1,7 @@
 #Re-assessment template 2025
 
 # Note: The template functions here and the dataframe format for structuring your solution is a suggested but not mandatory approach. You can use a different approach if you like, as long as you clearly answer the questions and communicate your answers clearly.
-
+#packages for this code 
 import nltk
 import spacy
 from pathlib import Path
@@ -13,7 +13,7 @@ nltk.download('punkt')
 nltk.download('punkt_tab') 
 from collections import Counter
 from math import log
-# ...your functions here...
+
 
 nlp = spacy.load("en_core_web_sm")
 nlp.max_length = 2000000
@@ -124,10 +124,6 @@ def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
 
 def nltk_ttr(text):
     """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
-    import re
-    import nltk
-    from nltk import word_tokenize
-    nltk.download('punkt')
     newtoken = word_tokenize(text)
     #need to exclude punctuation and ignore case
     # Convert tokens to lowercase and filter out non-alphabetic tokens - this will filter out numbers and punctuation and ignore the lowercase
@@ -178,8 +174,8 @@ def subjects_by_verb_pmi(doc, target_verb):
         prob_verb = verb_counts[verb] / total_verbs  # probability of verb appearing
         prob_coocurance = count / len(doc)  # probability of subject and verb appearing together
 
-        pmi_scores=log(prob_coocurance / (prob_subject * prob_verb)) if prob_subject > 0 and prob_verb > 0 else 0
-        pmi_scores.append((subject, verb, pmi_scores))  # append the subject, verb and pmi score to the list
+        pmi_score=log(prob_coocurance / (prob_subject * prob_verb)) if prob_subject > 0 and prob_verb > 0 else 0
+        pmi_scores.append((subject, verb, pmi_score))  # append the subject, verb and pmi score to the list
     return sorted(pmi_scores, key=lambda x: x[2], reverse=True)[:10]  #gives the top 10 subjects with highest PMI
 
 
@@ -193,8 +189,8 @@ def subjects_by_verb_count(doc, verb):
         if token.dep_ == "nsubj" and token.head.lemma_ == verb:  # check if the token is a subject of the verb "hear"
             #this is the subject of the verb
             subject_counter.append(token.text.lower()) #add the subject to the list
-    return subject_counter.most_common(10)#this will return the 10 most common subjects
-    pass
+    return Counter(subject_counter).most_common(10)#this will return the 10 most common subjects
+
 
 
 
@@ -215,12 +211,11 @@ def adjective_counts(doc):
 
 
 if __name__ == "__main__":
-    print("Current working directory:", os.getcwd())
     path = Path.cwd() / "Part1_novels"
     print(path)
     df = read_novels(path) # this line will fail until you have completed the read_novels function above.
     print(df.head())
-    nltk.download("cmudict")
+    #nltk.download("cmudict")
     parse(df)
     print(df.head())
     print(get_ttrs(df))
