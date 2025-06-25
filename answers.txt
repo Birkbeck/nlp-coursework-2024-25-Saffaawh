@@ -1,6 +1,7 @@
 ###Part 1 (D) - Flesch-Kincaid Not a good predictor 
 
 There are two condions where the FK level is not a good prediction the first is for small texts - the FK result can be given as a negative number- for this reason my code automatically changes negative numbers to 0. 
+
 The second is that because it uses the length of a sentence a short complicated sentences could be marked as easy this is because it does not consider the context of the sentence legal, scientific and poetry may have short sentence but ue to the temininnology may be complex and this predictor would not be accurate. 
 
 ### Part 2 (F) — Custom Tokenizer Explanation

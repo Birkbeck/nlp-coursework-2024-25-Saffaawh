@@ -28,7 +28,7 @@ def vectorise_speech(df):#function to vecotise speech column
     X = vectorizer.fit_transform(df['speech'])
     y = df['party']
     #split the data into training and testing sets with random seed 26
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=26)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,stratify=y, random_state=26)
     return X_train, X_test, y_train, y_test, vectorizer
 #2(c) train Random Forest Classifier and SVM
 from sklearn.ensemble import RandomForestClassifier
@@ -51,7 +51,7 @@ def vectorise_speech_with_ngrams(df):
     X = vectorizer.fit_transform(df['speech'])
     y = df['party']
     #split the data into training and testing sets with random seed 26
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=26)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,stratify=y, random_state=26)
     #train the classifeers with the new vectorised data
     classifiers ={ 'Random Forest with ngram': RandomForestClassifier(n_estimators=300, random_state=26)
     , 'SVM with ngram':SVC(kernel='linear', random_state=26)}

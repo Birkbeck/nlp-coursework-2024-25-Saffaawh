@@ -93,6 +93,7 @@ def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
 
 
 def nltk_ttr(text):
+    results = {}
     newtoken = word_tokenize(text)
     #need to exclude punctuation and ignore case
     # Convert tokens to lowercase and filter out non-alphabetic tokens - this will filter out numbers and punctuation and ignore the lowercase
@@ -100,7 +101,10 @@ def nltk_ttr(text):
     unique_tokens = set(newtoken) #removes the duplicates
     if len(newtoken) == 0:#if there are no tokens, return 0.0 to avoid division by zero
         return 0.0
-    return len(unique_tokens) / len(newtoken) if len(newtoken) > 0 else 0.0
+    ratio = len(unique_tokens) / len(newtoken)  # calculate the type-token ratio
+    results["text"]= text
+    results["ttr"] = round(ratio, 4)  # round the ratio 
+    return results
 
 
 def get_ttrs(df):
@@ -119,18 +123,24 @@ def get_fks(df):
 
 
 def subjects_by_verb_pmi(doc, target_verb):
-    #step 2 is to calculate the verb poitwise mutual information (PMI) to find strongly associated subjects 
+    #step 2 is to calculate the verb poitwise mutual information (PMI) to find strongly associated subjects   
+ #The title of each novel and a list of the ten most common syntactic objects overall in the text.
+    object_counter = Counter()  # to count the occurrences of each object
     subjects_counts = Counter() #tracks how often each subject appears
     verb_counts = Counter()  # tracks how often each verb appears
     co_occcurrences = Counter()  # to count how often (subject,verb) pairs appear together
     for token in doc:#loop trhough the doc
-        if token.dep_ == "nsubj": #this means its a subject of  verb 
-            subject = token.text.lower() #coversts to lowercase for consitency 
+        if token.dep_ in ["nsubj", "dobj", "iobj"]: #this means its a subject of  verb 
+            subject_or_object = token.text.lower() #coversts to lowercase for consitency 
             verb = token.head.lemma_.lower()  # this is the verb the subject depends on 
-            subjects_counts[subject] += 1  # update the counters 
+            if token.dep_ == "nsubj":  # check if the token is a subject
+                subjects_counts[subject_or_object] += 1  # update the counters 
+            elif token.dep_ in ["dobj", "iobj"]:  # check if the token is a direct or indirect object
+                object_counter[subject_or_object] += 1  # update the object counter
             verb_counts[verb] += 1
             co_occcurrences[(subject, verb)] += 1  
             #compute teh totals 
+    total_objects = sum(object_counter.values())  # total number of objects
     total_subjects = sum(subjects_counts.values())
     total_verbs = sum(verb_counts.values())
     #calculate the PMI scores
@@ -179,6 +189,7 @@ if __name__ == "__main__":
     #nltk.download("cmudict")
     parse(df)
     print(df.head())
+    print(nltk_ttr(df).head)  # Example usage of nltk_ttr function
     print(get_ttrs(df))
     print(get_fks(df))
     df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle")
