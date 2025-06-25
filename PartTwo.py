@@ -5,19 +5,16 @@ def load_dataset_clean(path):
     try:
         df = pd.read_csv(path)
         df['party']= df['party'].str.strip().replace('Labour (Co-op)', 'Labour')
-        print(df.head()) 
         # remove speaker 
         df = df[df['party'] != 'Speaker']
     #2(a)(ii): remove the rows that are not part of top 4 parties 
         top_four = df['party'].value_counts().nlargest(4).index
         df = df[df['party'].isin(top_four)] 
     #2 (a)(iii): remove the rows were the speech_class column is not speech
-        print(df)
         df = df[df['speech_class'] == 'Speech']
-        print(df.head()) 
     #2(a)(iv): remove any rows where speech column is less than 1000 characters
         df = df[df['speech'].str.len() >= 1000] 
-        print(df.head())  # Display the first few rows of the cleaned dataframe
+        print(f'Data shape:{df.shape}')  # Print the shape of the dataframe after cleaning
     #2 (a)(v) return the cleaned dataframe
         return df
     except Exception as e:
@@ -101,9 +98,7 @@ if __name__ == "__main__":
     from pathlib import Path
     path = Path.cwd() / 'p2-texts' / 'hansard40000.csv'
     df = load_dataset_clean(path)
-    print(df.head())  # Display the first few rows of the cleaned dataframe
-    print(df['party'].value_counts())  # Display the counts of each party in the cleaned dataframe
-    print(df['speech'].head())
+    print(f' Cleaned data preview: {df.head()}')  # Display the first few rows of the cleaned dataframe
     X_train, X_test, y_train, y_test, vectorizer = vectorise_speech(df)
     train_models(X_train, X_test, y_train, y_test)
     vectorise_speech_with_ngrams(df)
